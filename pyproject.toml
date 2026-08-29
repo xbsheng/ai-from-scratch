@@ -9,3 +9,6 @@ package = false
 
 [tool.uv.workspace]
 members = ["mini-*"]
+
+[tool.ruff]
+line-length = 120
