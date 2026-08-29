@@ -1,0 +1,11 @@
+[project]
+name = "ai-from-scratch"
+version = "0.1.0"
+description = "从零实现 AI 相关的工具与框架"
+requires-python = ">=3.11"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["mini-*"]
