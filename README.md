@@ -9,6 +9,7 @@
 | 轮子                                   | 内容                                                     | 状态      |
 | -------------------------------------- | -------------------------------------------------------- | --------- |
 | [mini-transformer](./mini-transformer) | 从零实现 Transformer（注意力、位置编码、训练一个小模型） | 🚧 规划中 |
+| [mini-qwen3](./mini-qwen3)             | 从零实现 Qwen3 架构（RMSNorm / SwiGLU / RoPE / GQA）      | 🏗️ 进行中 |
 | [mini-tokenizer](./mini-tokenizer)     | 从零实现 BPE 分词器                                      | 🚧 规划中 |
 | [mini-agent](./mini-agent)             | 从零实现 Agent 循环（工具调用 / ReAct）                  | 🚧 规划中 |
 | [mini-rag](./mini-rag)                 | 从零实现 RAG 流水线（切分、检索、生成）                  | 🚧 规划中 |

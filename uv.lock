@@ -10,6 +10,7 @@ resolution-markers = [
 members = [
     "ai-from-scratch",
     "mini-agent",
+    "mini-qwen3",
     "mini-rag",
     "mini-tokenizer",
     "mini-transformer",
@@ -683,6 +684,17 @@ wheels = [
 name = "mini-agent"
 version = "0.1.0"
 source = { virtual = "mini-agent" }
+
+[[package]]
+name = "mini-qwen3"
+version = "0.1.0"
+source = { virtual = "mini-qwen3" }
+dependencies = [
+    { name = "torch" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "torch", specifier = ">=2.13.0" }]
 
 [[package]]
 name = "mini-rag"
