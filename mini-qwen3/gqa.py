@@ -6,27 +6,27 @@ from torch import Tensor, nn
 
 class GroupedQueryAttention(nn.Module):
     def __init__(
-        self, d_in: int, num_heads: int, num_groups: int, head_dim: int | None = None, qk_norm=False, bias=False
+        self, d_in: int, n_heads: int, n_kv_groups: int, head_dim: int | None = None, qk_norm=False, bias=False
     ):
         super().__init__()
 
-        self.num_heads = num_heads
-        self.num_groups = num_groups
+        self.n_heads = n_heads
+        self.n_kv_groups = n_kv_groups
         self.bias = bias
 
-        assert num_heads % num_groups == 0, "num_heads % num_groups != 0"
-        self.group_size = num_heads // num_groups
+        assert n_heads % n_kv_groups == 0, "n_heads % n_kv_groups != 0"
+        self.group_size = n_heads // n_kv_groups
 
         if head_dim is None:
-            assert d_in % num_heads == 0, "d_in % num_heads != 0"
-            head_dim = d_in // num_heads
+            assert d_in % n_heads == 0, "d_in % n_heads != 0"
+            head_dim = d_in // n_heads
         self.head_dim = head_dim
 
-        d_out = num_heads * head_dim
+        d_out = n_heads * head_dim
 
         self.w_q = nn.Linear(d_in, d_out, bias=bias)
-        self.w_k = nn.Linear(d_in, num_groups * head_dim, bias=bias)
-        self.w_v = nn.Linear(d_in, num_groups * head_dim, bias=bias)
+        self.w_k = nn.Linear(d_in, n_kv_groups * head_dim, bias=bias)
+        self.w_v = nn.Linear(d_in, n_kv_groups * head_dim, bias=bias)
 
         self.w_out = nn.Linear(d_out, d_in, bias=bias)
 
@@ -38,19 +38,19 @@ class GroupedQueryAttention(nn.Module):
 
         offset = 0
         if kv_cache:
-            k_cache, v_cache = kv_cache  # k、v cache shape: (batch_size, num_groups, seq_len, head_dim)
+            k_cache, v_cache = kv_cache  # k、v cache shape: (batch_size, n_kv_groups, seq_len, head_dim)
             offset = k_cache.shape[-2]
 
-        q: Tensor = self.w_q(x)  # (batch_size, seq_len, num_heads * head_dim)
-        k: Tensor = self.w_k(x)  # (batch_size, seq_len, num_groups * head_dim)
-        v: Tensor = self.w_v(x)  # (batch_size, seq_len, num_groups * head_dim)
+        q: Tensor = self.w_q(x)  # (batch_size, seq_len, n_heads * head_dim)
+        k: Tensor = self.w_k(x)  # (batch_size, seq_len, n_kv_groups * head_dim)
+        v: Tensor = self.w_v(x)  # (batch_size, seq_len, n_kv_groups * head_dim)
 
-        # q shape: (batch_size, num_heads, seq_len, head_dim)
-        q = q.reshape(batch_size, seq_len, self.num_heads, -1).transpose(1, 2)
+        # q shape: (batch_size, n_heads, seq_len, head_dim)
+        q = q.reshape(batch_size, seq_len, self.n_heads, -1).transpose(1, 2)
 
-        # k、v shape: (batch_size, num_groups, seq_len, head_dim)
-        k = k.reshape(batch_size, seq_len, self.num_groups, -1).transpose(1, 2)
-        v = v.reshape(batch_size, seq_len, self.num_groups, -1).transpose(1, 2)
+        # k、v shape: (batch_size, n_kv_groups, seq_len, head_dim)
+        k = k.reshape(batch_size, seq_len, self.n_kv_groups, -1).transpose(1, 2)
+        v = v.reshape(batch_size, seq_len, self.n_kv_groups, -1).transpose(1, 2)
 
         if self.q_norm:
             q = self.q_norm(q)
@@ -67,17 +67,17 @@ class GroupedQueryAttention(nn.Module):
             v = torch.cat([v_cache, v], dim=-2)
         next_cache = (k, v)
 
-        # (batch_size, num_groups, seq_len, head_dim)
-        # -> (batch_size, num_groups * group_size, seq_len, head_dim)
-        # num_groups * group_size == num_heads
+        # (batch_size, n_kv_groups, seq_len, head_dim)
+        # -> (batch_size, n_kv_groups * group_size, seq_len, head_dim)
+        # n_kv_groups * group_size == n_heads
         k = k.repeat_interleave(self.group_size, dim=1)
         v = v.repeat_interleave(self.group_size, dim=1)
 
-        attn_score = q @ k.mT  # (batch_size, num_heads, seq_len, seq_len)
+        attn_score = q @ k.mT  # (batch_size, n_heads, seq_len, seq_len)
         attn_score = attn_score.masked_fill(mask, -torch.inf)
         attn_weight = torch.softmax(attn_score / self.head_dim**0.5, dim=-1)
 
-        context = attn_weight @ v  # (batch_size, num_heads, seq_len, head_dim)
+        context = attn_weight @ v  # (batch_size, n_heads, seq_len, head_dim)
         context = context.transpose(1, 2).reshape(batch_size, seq_len, -1)
 
         return self.w_out(context), next_cache

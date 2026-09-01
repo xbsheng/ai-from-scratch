@@ -7,7 +7,7 @@ def apply_rope(x: Tensor, sin: Tensor, cos: Tensor, offset=0):
     RoPE旋转位置编码
 
     Args:
-        x (Tensor): shape (batch_size, num_heads, seq_len, head_dim)
+        x (Tensor): shape (batch_size, n_heads, seq_len, head_dim)
         sin (Tensor): shape (context_len, head_dim)
         cos (Tensor): shape (context_len, head_dim)
         offset (int, optional): 偏移量. Defaults to 0.
@@ -15,7 +15,7 @@ def apply_rope(x: Tensor, sin: Tensor, cos: Tensor, offset=0):
     Returns:
         x_rotated (Tensor): 旋转后的张量
     """
-    _batch_size, _num_heads, seq_len, head_dim = x.shape
+    _batch_size, _n_heads, seq_len, head_dim = x.shape
 
     assert head_dim % 2 == 0, "head_dim 必须是偶数"
 

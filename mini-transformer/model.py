@@ -70,14 +70,14 @@ class FeedForward(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, d_model: int, num_heads: int, dropout: float):
+    def __init__(self, d_model: int, n_heads: int, dropout: float):
         super().__init__()
 
         self.d_model = d_model
-        self.num_heads = num_heads
+        self.n_heads = n_heads
 
-        assert d_model % num_heads == 0, "d_model % num_heads != 0"
-        self.d_k = d_model // num_heads
+        assert d_model % n_heads == 0, "d_model % n_heads != 0"
+        self.d_k = d_model // n_heads
 
         self.w_q = nn.Linear(d_model, d_model)
         self.w_k = nn.Linear(d_model, d_model)
@@ -88,11 +88,11 @@ class MultiHeadAttention(nn.Module):
 
     @staticmethod
     def attention(query: Tensor, key: Tensor, value: Tensor, mask: Tensor | None, dropout: nn.Dropout | None):
-        # query/key/value shape: (batch_size, num_heads, seq_len, d_k)
+        # query/key/value shape: (batch_size, n_heads, seq_len, d_k)
         d_k = query.shape[-1]
 
-        # (batch_size, num_heads, seq_len d_k) @ (batch_size, num_heads, d_k, seq_len)
-        # -> (batch_size, num_heads, seq_len, seq_len)
+        # (batch_size, n_heads, seq_len d_k) @ (batch_size, n_heads, d_k, seq_len)
+        # -> (batch_size, n_heads, seq_len, seq_len)
         attention_score = (query @ key.mT) / math.sqrt(d_k)
 
         if mask is not None:
@@ -104,26 +104,26 @@ class MultiHeadAttention(nn.Module):
         if dropout is not None:
             attn_weights = dropout(attn_weights)
 
-        # attn_weights @ value -> (batch_size, num_heads, seq_len, d_k)
+        # attn_weights @ value -> (batch_size, n_heads, seq_len, d_k)
         context_vec = attn_weights @ value
         return context_vec, attn_weights
 
     def forward(self, x: Tensor, mask: Tensor | None):
         batch_size, seq_len, _ = x.shape
-        reshape_shape = (batch_size, seq_len, self.num_heads, self.d_k)
+        reshape_shape = (batch_size, seq_len, self.n_heads, self.d_k)
 
         # x:           (batch_size, seq_len, d_model)
         # w_q(x)    -> (batch_size, seq_len, d_model)
-        # reshape   -> (batch_size, seq_len, num_heads, d_k)
-        # transpose -> (batch_size, num_heads, seq_len, d_k)
+        # reshape   -> (batch_size, seq_len, n_heads, d_k)
+        # transpose -> (batch_size, n_heads, seq_len, d_k)
         query = self.w_q(x).reshape(reshape_shape).transpose(1, 2)
         key = self.w_k(x).reshape(reshape_shape).transpose(1, 2)
         value = self.w_v(x).reshape(reshape_shape).transpose(1, 2)
 
         context_vec, attention_score = self.attention(query, key, value, mask, self.dropout)
 
-        # context_vec:       (batch_size, num_heads, seq_len, d_k)
-        # transpose(1, 2) -> (batch_size, seq_len, num_heads, d_k)
+        # context_vec:       (batch_size, n_heads, seq_len, d_k)
+        # transpose(1, 2) -> (batch_size, seq_len, n_heads, d_k)
         # flatten(-2)     -> (batch_size, seq_len, d_model)
         context_vec = context_vec.transpose(1, 2).flatten(-2)
 
@@ -144,10 +144,10 @@ class ResidualConnection(nn.Module):
 
 
 class EncoderBlock(nn.Module):
-    def __init__(self, d_model: int, num_heads: int, dropout: float, d_ff: int):
+    def __init__(self, d_model: int, n_heads: int, dropout: float, d_ff: int):
         super().__init__()
 
-        self.attn = MultiHeadAttention(d_model=d_model, num_heads=num_heads, dropout=dropout)
+        self.attn = MultiHeadAttention(d_model=d_model, n_heads=n_heads, dropout=dropout)
         self.ffn = FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
         self.res = ResidualConnection(dropout)
 
@@ -157,14 +157,14 @@ class EncoderBlock(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, num_layers: int, d_model: int, num_heads: int, dropout: float, d_ff: int):
+    def __init__(self, num_layers: int, d_model: int, n_heads: int, dropout: float, d_ff: int):
         super().__init__()
         self.normal = LayerNormal()
         self.layers = nn.ModuleList(
             [
                 EncoderBlock(
                     d_model=d_model,
-                    num_heads=num_heads,
+                    n_heads=n_heads,
                     dropout=dropout,
                     d_ff=d_ff,
                 )

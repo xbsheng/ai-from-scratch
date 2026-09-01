@@ -128,8 +128,8 @@ def test_gqa_head_dim_both_paths():
 
 
 def test_gqa_kv_shared_within_group():
-    """GQA 结构：w_k / w_v 只输出 num_groups*head_dim（KV 按组共享，而非每头一份）。"""
-    gqa = GroupedQueryAttention(d_in=64, num_heads=8, num_groups=4, head_dim=16)
+    """GQA 结构：w_k / w_v 只输出 n_kv_groups*head_dim（KV 按组共享，而非每头一份）。"""
+    gqa = GroupedQueryAttention(d_in=64, n_heads=8, n_kv_groups=4, head_dim=16)
     assert gqa.w_q.out_features == 8 * 16
     assert gqa.w_k.out_features == 4 * 16
     assert gqa.w_v.out_features == 4 * 16
@@ -141,7 +141,7 @@ def test_gqa_causal_mask():
     首 token 被屏蔽未来 → 输出与全可见时不同。
     """
     torch.manual_seed(0)
-    gqa = GroupedQueryAttention(d_in=16, num_heads=2, num_groups=1, head_dim=8, qk_norm=True)
+    gqa = GroupedQueryAttention(d_in=16, n_heads=2, n_kv_groups=1, head_dim=8, qk_norm=True)
     x = torch.randn(1, 4, 16)
     sin, cos = build_rope_table(8, 8)
     causal = torch.triu(torch.ones(4, 4, dtype=torch.bool), diagonal=1).unsqueeze(0).unsqueeze(0)  # True=屏蔽未来
@@ -181,7 +181,7 @@ def test_gqa_kv_cache_consistency():
 
 def test_gqa_bf16_dtype():
     """bf16 模型 + fp32 sin/cos 表 → 输出保持 bf16（回归 dtype 提升 bug）。"""
-    gqa = GroupedQueryAttention(d_in=64, num_heads=8, num_groups=4, qk_norm=True).to(torch.bfloat16)
+    gqa = GroupedQueryAttention(d_in=64, n_heads=8, n_kv_groups=4, qk_norm=True).to(torch.bfloat16)
     x = torch.randn(2, 5, 64, dtype=torch.bfloat16)
     sin, cos = build_rope_table(8, 16)
     out, _ = gqa(x, torch.zeros(2, 1, 5, 5, dtype=torch.bool), sin, cos)
@@ -191,14 +191,14 @@ def test_gqa_bf16_dtype():
 def test_gqa_qk_norm_activates():
     """qk_norm=True 时 q 在进入 attention 前每头 RMS≈1；False 时不归一化。"""
     torch.manual_seed(0)
-    gqa = GroupedQueryAttention(d_in=16, num_heads=2, num_groups=1, head_dim=8, qk_norm=True)
+    gqa = GroupedQueryAttention(d_in=16, n_heads=2, n_kv_groups=1, head_dim=8, qk_norm=True)
     captured = {}
     hook = gqa.q_norm.register_forward_hook(lambda m, i, o: captured.update(q=o))
     x = torch.randn(2, 3, 16)
     gqa(x, torch.zeros(2, 1, 3, 3, dtype=torch.bool), *build_rope_table(8, 8))
     hook.remove()
 
-    q = captured["q"]  # (batch, num_heads, seq, head_dim)，RMSNorm 输出
+    q = captured["q"]  # (batch, n_heads, seq, head_dim)，RMSNorm 输出
     rms = q.pow(2).mean(-1).sqrt()
     torch.testing.assert_close(rms, torch.ones_like(rms), atol=1e-4, rtol=1e-4)
 
@@ -206,7 +206,7 @@ def test_gqa_qk_norm_activates():
 def test_gqa_gradient():
     """所有参数（含 qk_norm 的 RMSNorm weight）都收到非零梯度。"""
     torch.manual_seed(0)
-    gqa = GroupedQueryAttention(d_in=16, num_heads=4, num_groups=2, head_dim=8, qk_norm=True)
+    gqa = GroupedQueryAttention(d_in=16, n_heads=4, n_kv_groups=2, head_dim=8, qk_norm=True)
     x = torch.randn(2, 3, 16, requires_grad=True)
     sin, cos = build_rope_table(8, 8)
     out, _ = gqa(x, torch.zeros(2, 1, 3, 3, dtype=torch.bool), sin, cos)
