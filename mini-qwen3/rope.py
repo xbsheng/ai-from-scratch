@@ -45,7 +45,7 @@ def build_rope_table(head_dim: int, context_len: int, theta_base=1e6, dtype=torc
     Args:
         head_dim (int): 向量维度
         context_len (int): 最大上下文长度
-        theta_base (_type_, optional): _description_. Defaults to 1e4.
+        theta_base (_type_, optional): _description_. Defaults to 1e6.
 
     Returns:
         (sin, cos): _description_

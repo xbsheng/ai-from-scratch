@@ -20,7 +20,7 @@ class QwenConfig(TypedDict):
 
 
 # 0.6 billion parameters
-QWEN_CONFIG_06_B: QwenConfig = {
+QWEN_CONFIG_0_6_B: QwenConfig = {
     "vocab_size": 151_936,  # 词表大小
     "context_length": 40_960,  # 训练时使用的上下文长度
     "emb_dim": 1024,  # 嵌入维度

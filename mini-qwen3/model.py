@@ -49,7 +49,7 @@ class Qwen3(nn.Module):
             cache[i] = next_cache
 
         x = self.norm(x)
-        logits = self.out(x)  # (batch_size, seq_len, vocab_size)
+        logits: Tensor = self.out(x)  # (batch_size, seq_len, vocab_size)
 
         self.offset = seq_len_total
 
