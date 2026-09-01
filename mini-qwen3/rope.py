@@ -13,11 +13,11 @@ def apply_rope(x: Tensor, sin: Tensor, cos: Tensor, offset=0):
         offset (int, optional): 偏移量. Defaults to 0.
 
     Returns:
-        Tensor: _description_
+        x_rotated (Tensor): 旋转后的张量
     """
-    batch_size, num_heads, seq_len, head_dim = x.shape
+    _batch_size, _num_heads, seq_len, head_dim = x.shape
 
-    assert head_dim % 2 == 0
+    assert head_dim % 2 == 0, "head_dim 必须是偶数"
 
     a = x[..., : head_dim // 2]
     b = x[..., head_dim // 2 :]
@@ -34,10 +34,10 @@ def apply_rope(x: Tensor, sin: Tensor, cos: Tensor, offset=0):
 
 def build_rope_table(head_dim: int, context_len: int, theta_base=1e4, dtype=torch.float32):
     """
-    计算 sin, cos 参数
+    计算 sin, cos 数值表
 
     分组配对策略：对于8维的向量
-    (0, 4) (1, 5) (2, 6) (3, 7)
+    -> (0, 4) (1, 5) (2, 6) (3, 7)
 
     Args:
         head_dim (int): 向量维度
