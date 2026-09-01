@@ -19,6 +19,8 @@ def apply_rope(x: Tensor, sin: Tensor, cos: Tensor, offset=0):
 
     assert head_dim % 2 == 0, "head_dim 必须是偶数"
 
+    sin, cos = sin.to(x.dtype), cos.to(x.dtype)
+
     a = x[..., : head_dim // 2]
     b = x[..., head_dim // 2 :]
 
@@ -32,7 +34,8 @@ def apply_rope(x: Tensor, sin: Tensor, cos: Tensor, offset=0):
     return sin * torch.cat([-b, a], dim=-1) + cos * x
 
 
-def build_rope_table(head_dim: int, context_len: int, theta_base=1e4, dtype=torch.float32):
+# qwen3 theta_base值为1e6
+def build_rope_table(head_dim: int, context_len: int, theta_base=1e6, dtype=torch.float32):
     """
     计算 sin, cos 数值表
 
