@@ -1,7 +1,26 @@
+from typing import TypedDict
+
 import torch
 
+
+class QwenConfig(TypedDict):
+    """Qwen3 模型配置，字段与官方 config.json 一致"""
+
+    vocab_size: int
+    context_length: int
+    emb_dim: int
+    n_heads: int
+    n_layers: int
+    hidden_dim: int
+    head_dim: int
+    qk_norm: bool
+    n_kv_groups: int
+    rope_base: float
+    dtype: torch.dtype
+
+
 # 0.6 billion parameters
-QWEN_CONFIG_06_B = {
+QWEN_CONFIG_06_B: QwenConfig = {
     "vocab_size": 151_936,  # 词表大小
     "context_length": 40_960,  # 训练时使用的上下文长度
     "emb_dim": 1024,  # 嵌入维度
