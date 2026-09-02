@@ -24,7 +24,7 @@ uv run python test.py           # 22 个单元测试（覆盖全部实现文件 
 uv run python generate.py
 
 # 资源占用统计（随机权重，无需下载）
-uv run python profile.py
+uv run python profiling.py
 ```
 
 ## 结构
@@ -40,7 +40,7 @@ model.py       # Qwen3：embedding + 28 层 + norm + lm_head
 tokenizer.py   # 自研 tokenizer（TODO）
 load_qwen3.py  # 加载官方 Qwen3-0.6B safetensors 权重（名字映射 + shape 校验）
 generate.py    # 对话生成（chat template + kv_cache 流式）
-profile.py     # 内存 / 延迟 / 生成速度统计
+profiling.py     # 内存 / 延迟 / 生成速度统计
 test.py        # 单元测试（uv run python test.py）
 ```
 
