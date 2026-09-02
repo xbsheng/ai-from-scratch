@@ -2,6 +2,8 @@
 
 从零实现 Qwen3 的架构（对齐官方 Qwen3-0.6B）。
 
+![Qwen3 架构图](./assets/qwen3_architecture.svg)
+
 ## 目标
 
 - [x] 配置：对齐官方 Qwen3-0.6B（TypedDict，字段与官方 config.json 一致）
