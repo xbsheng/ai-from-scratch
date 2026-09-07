@@ -1,5 +1,6 @@
 import torch
 from config import QWEN_CONFIG_0_6_B
+from device import DEVICE
 from load_qwen3 import load_official_weights
 from model import Qwen3
 from torch import Tensor
@@ -29,7 +30,7 @@ def generate_text(in_idx: Tensor, model: Qwen3, tokenizer: PreTrainedTokenizerBa
 
 
 if __name__ == "__main__":
-    model = Qwen3(QWEN_CONFIG_0_6_B).to(QWEN_CONFIG_0_6_B["dtype"])
+    model = Qwen3(QWEN_CONFIG_0_6_B).to(dtype=QWEN_CONFIG_0_6_B["dtype"], device=DEVICE)
     model = model.eval()  # 开启评估模式
     load_official_weights(model)
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
@@ -46,7 +47,7 @@ if __name__ == "__main__":
         return_tensors="pt",
     )
 
-    input_ids = inputs["input_ids"]
+    input_ids = inputs["input_ids"].to(device=DEVICE)
 
     """
     <think>

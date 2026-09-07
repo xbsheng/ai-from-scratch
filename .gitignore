@@ -23,3 +23,5 @@ data/
 # 编辑器与系统
 .idea/
 .DS_Store
+
+sftp.json
