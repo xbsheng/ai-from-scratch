@@ -20,7 +20,7 @@ class Sequence:
         self.status = SeqStatus.WAITING
 
         self.is_prefill = True
-        self.block_table = []
+        self.block_table: list[int] = []
 
         self.token_ids = copy(token_ids)
         self.last_token = token_ids[-1]
