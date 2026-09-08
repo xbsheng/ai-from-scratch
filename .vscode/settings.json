@@ -1,4 +1,16 @@
 {
-  "cSpell.words": ["freqs", "layernorm", "numpy", "pyproject", "silu", "triu", "venv", "vllm"],
+  "cSpell.words": [
+    "freqs",
+    "intdigest",
+    "layernorm",
+    "minivllm",
+    "numpy",
+    "pyproject",
+    "silu",
+    "tobytes",
+    "triu",
+    "venv",
+    "vllm"
+  ],
   "python-envs.defaultEnvManager": "ms-python.python:venv"
 }
