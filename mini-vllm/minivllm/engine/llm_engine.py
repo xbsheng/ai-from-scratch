@@ -1,6 +1,10 @@
+import atexit
 from dataclasses import fields
+from multiprocessing.context import SpawnProcess
+from multiprocessing.synchronize import Event
 from time import perf_counter
 
+import torch.multiprocessing as mp
 from minivllm.config import Config
 from minivllm.engine.model_runner import ModelRunner
 from minivllm.engine.scheduler import Scheduler
@@ -14,11 +18,57 @@ class LLMEngine:
     def __init__(self, model_name: str, **kwargs):
         config_fields = {field.name for field in fields(Config)}
         config_kwargs = {k: v for k, v in kwargs.items() if k in config_fields}
-        self.config = Config(model_name, **config_kwargs)
+        config = Config(model_name, **config_kwargs)
 
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.scheduler = Scheduler(self.config)
-        self.model_runner = ModelRunner(self.config)
+
+        assert isinstance(self.tokenizer.eos_token_id, int)
+        config.eos = self.tokenizer.eos_token_id
+
+        Sequence.block_size = config.kv_cache_block_size
+
+        self.scheduler = Scheduler(config)
+
+        (
+            self.model_runner,
+            self.ps,
+            self.events,
+        ) = self._init_model_runner(config)
+
+        # 注册一个"进程退出时自动执行"的回调
+        # 当 Python 解释器正常结束时（比如主程序跑完、或调用 sys.exit()），atexit 模块会在退出前依次调用所有注册的函数
+        # 进程正常退出时自动清理 TP 子进程和共享内存
+        atexit.register(self.exit)
+
+    def _init_model_runner(self, config: Config):
+        ps: list[SpawnProcess] = []  # 保存所有 worker 进程句柄，exit() 时 join
+        events: list[Event] = []  # 每个 worker 一个跨进程 Event，rank0 用来唤醒它们
+        ctx = mp.get_context("spawn")  # 用 spawn 启动方式（新解释器，CUDA 安全）
+
+        for i in range(1, config.tensor_parallel_size):
+            event = ctx.Event()  # 给这个 worker 专属的信号量
+
+            process = ctx.Process(target=ModelRunner, args=(config, i, event))
+
+            # 子进程直接跑 ModelRunner 的 __init__
+            # 对 rank>0 的 worker，__init__ 走到末尾会调用 self.loop()，进入一个永不返回的事件循环
+            process.start()
+
+            ps.append(process)
+            events.append(event)
+
+        # 主进程原地构造 rank 0 的 runner（不 spawn）
+        # 这里传的是整个 events 列表，而 worker 传的是单个 event :
+        # 因为 rank 0 是驱动方，write_shm 需要同时唤醒所有 worker
+        model_runner = ModelRunner(config, 0, events)
+
+        return model_runner, ps, events
+
+    def exit(self):
+        self.model_runner.call("exit")
+        del self.model_runner
+        for p in self.ps:
+            p.join()
 
     def add_request(self, prompt: str | list[int], sampling_params: SamplingParams):
         token_ids = self.tokenizer.encode(prompt) if isinstance(prompt, str) else prompt
