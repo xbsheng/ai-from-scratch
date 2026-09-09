@@ -51,7 +51,7 @@ def test_qwen3_kv_cache_consistency():
 def test_qwen3_structure_matches_config():
     """模型结构与 config 一致：层数、embedding/lm_head 形状、权重不共享（官方 tie_word_embeddings=false）。"""
     model = Qwen3(SMALL_CFG)
-    assert len(model.tf_blocks) == SMALL_CFG["n_layers"]
+    assert len(model.tf_blocks) == SMALL_CFG["num_hidden_layers"]
     assert tuple(model.embedding.weight.shape) == (1000, 32)
     assert tuple(model.out.weight.shape) == (1000, 32)  # bias=False，无 out.bias
     assert not hasattr(model.out, "bias") or model.out.bias is None

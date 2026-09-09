@@ -10,15 +10,15 @@ class Qwen3(nn.Module):
     def __init__(self, config: QwenConfig):
         super().__init__()
 
-        self.embedding = nn.Embedding(config["vocab_size"], config["emb_dim"])
-        self.tf_blocks = nn.ModuleList([TransformerBlock(config) for _ in range(config["n_layers"])])
-        self.norm = RMSNorm(config["emb_dim"])
-        self.out = nn.Linear(config["emb_dim"], config["vocab_size"], bias=False)
+        self.embedding = nn.Embedding(config["vocab_size"], config["hidden_size"])
+        self.tf_blocks = nn.ModuleList([TransformerBlock(config) for _ in range(config["num_hidden_layers"])])
+        self.norm = RMSNorm(config["hidden_size"])
+        self.out = nn.Linear(config["hidden_size"], config["vocab_size"], bias=False)
 
         sin, cos = build_rope_table(
             head_dim=config["head_dim"],
-            context_len=config["context_length"],
-            theta_base=config["rope_base"],
+            context_len=config["max_position_embeddings"],
+            theta_base=config["rope_theta"],
         )
 
         self.register_buffer("sin", sin, persistent=False)

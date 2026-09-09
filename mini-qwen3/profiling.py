@@ -26,7 +26,7 @@ def rss_mb() -> float:
 
 def main() -> None:
     print(f"device: {'MPS' if torch.backends.mps.is_available() else 'CPU'}")
-    print(f"dtype:  {QWEN_CONFIG_0_6_B['dtype']}")
+    print(f"dtype:  {QWEN_CONFIG_0_6_B['torch_dtype']}")
 
     model = Qwen3(QWEN_CONFIG_0_6_B)
     n_params = sum(p.numel() for p in model.parameters())
@@ -37,7 +37,7 @@ def main() -> None:
 
         load_official_weights(model)
 
-    model = model.to(QWEN_CONFIG_0_6_B["dtype"]).eval()
+    model = model.to(QWEN_CONFIG_0_6_B["torch_dtype"]).eval()
     print(f"实例化+转dtype后 RSS: {rss_mb():.0f} MB")
     if torch.backends.mps.is_available():
         print(f"MPS 显存: {torch.mps.driver_allocated_memory() / 1e6:.0f} MB")

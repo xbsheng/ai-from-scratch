@@ -10,16 +10,16 @@ import torch
 # 2 层小模型，测试秒级跑完
 SMALL_CFG = {
     "vocab_size": 1000,
-    "context_length": 64,
-    "emb_dim": 32,
-    "n_heads": 4,
-    "n_layers": 2,
-    "hidden_dim": 64,
+    "max_position_embeddings": 64,
+    "hidden_size": 32,
+    "num_hidden_layers": 2,
+    "num_attention_heads": 4,
+    "num_key_value_heads": 2,
     "head_dim": 16,
+    "intermediate_size": 64,
+    "rope_theta": 1e6,
     "qk_norm": True,
-    "n_kv_groups": 2,
-    "rope_base": 1e6,
-    "dtype": torch.float32,
+    "torch_dtype": torch.float32,
 }
 
 

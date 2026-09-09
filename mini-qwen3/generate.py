@@ -30,7 +30,7 @@ def generate_text(in_idx: Tensor, model: Qwen3, tokenizer: PreTrainedTokenizerBa
 
 
 if __name__ == "__main__":
-    model = Qwen3(QWEN_CONFIG_0_6_B).to(dtype=QWEN_CONFIG_0_6_B["dtype"], device=DEVICE)
+    model = Qwen3(QWEN_CONFIG_0_6_B).to(dtype=QWEN_CONFIG_0_6_B["torch_dtype"], device=DEVICE)
     model = model.eval()  # 开启评估模式
     load_official_weights(model)
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")

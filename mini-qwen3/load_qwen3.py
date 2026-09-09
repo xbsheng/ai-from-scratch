@@ -14,7 +14,7 @@ def build_name_map():
         "model.norm.weight": "norm.weight",
         "lm_head.weight": "out.weight",
     }
-    for i in range(QWEN_CONFIG_0_6_B["n_layers"]):
+    for i in range(QWEN_CONFIG_0_6_B["num_hidden_layers"]):
         m |= {
             f"model.layers.{i}.input_layernorm.weight": f"tf_blocks.{i}.norm_1.weight",
             f"model.layers.{i}.post_attention_layernorm.weight": f"tf_blocks.{i}.norm_2.weight",
@@ -54,7 +54,7 @@ def load_official_weights(model: Qwen3) -> None:
 
 
 if __name__ == "__main__":
-    model = Qwen3(QWEN_CONFIG_0_6_B).to(QWEN_CONFIG_0_6_B["dtype"]).eval()
+    model = Qwen3(QWEN_CONFIG_0_6_B).to(QWEN_CONFIG_0_6_B["torch_dtype"]).eval()
     load_official_weights(model)
 
     # 快速 sanity：跑一次前向确认无 NaN
