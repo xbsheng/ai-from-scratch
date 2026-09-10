@@ -4,7 +4,14 @@ version = "0.1.0"
 description = "A minimal torchfeather implementation built from scratch."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "datasets>=5.0.1",
+    "loguru>=0.7.3",
+    "tokenizers>=0.23.1",
+    "torch>=2.13.0",
+    "torchdata>=0.11.0",
+    "wandb>=0.30.0",
+]
 
 [tool.uv]
 package = false
