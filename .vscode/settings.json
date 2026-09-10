@@ -12,6 +12,8 @@
     "pyproject",
     "silu",
     "tobytes",
+    "torchfeather",
+    "torchtitan",
     "triu",
     "venv",
     "vllm"

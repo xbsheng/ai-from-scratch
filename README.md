@@ -15,6 +15,7 @@
 | [mini-rag](./mini-rag)                 | 从零实现 RAG 流水线（切分、检索、生成）                  | 🚧 规划中 |
 | [mini-vector-db](./mini-vector-db)     | 从零实现向量检索（暴力搜索 → 索引加速）                  | 🚧 规划中 |
 | [mini-vllm](./mini-vllm)               | 从零实现 vLLM 推理引擎（PagedAttention / 连续批处理 / CUDA Graph） | 🏗️ 进行中 |
+| [mini-torchfeather](./mini-torchfeather) | 从零实现 torchfeather（基于 torchtitan 的轻量分布式训练框架）     | 🚧 规划中 |
 
 ## 约定
 
