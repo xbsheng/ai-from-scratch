@@ -27,13 +27,15 @@ class LLMEngine:
 
         Sequence.block_size = config.kv_cache_block_size
 
-        self.scheduler = Scheduler(config)
-
         (
             self.model_runner,
             self.ps,
             self.events,
         ) = self._init_model_runner(config)
+
+        # scheduler 需要在 runner 初始化之后：
+        # runner 初始化时会计算 num_kv_cache_blocks 并赋值到 config，scheduler 初始化时需要用到
+        self.scheduler = Scheduler(config)
 
         # 注册一个"进程退出时自动执行"的回调
         # 当 Python 解释器正常结束时（比如主程序跑完、或调用 sys.exit()），atexit 模块会在退出前依次调用所有注册的函数
@@ -69,6 +71,7 @@ class LLMEngine:
         del self.model_runner
         for p in self.ps:
             p.join()
+        print("exit success")
 
     def add_request(self, prompt: str | list[int], sampling_params: SamplingParams):
         token_ids = self.tokenizer.encode(prompt) if isinstance(prompt, str) else prompt

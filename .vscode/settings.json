@@ -1,9 +1,13 @@
 {
   "cSpell.words": [
+    "disd",
     "freqs",
+    "gloo",
     "intdigest",
+    "itemsize",
     "layernorm",
     "minivllm",
+    "nccl",
     "numpy",
     "pyproject",
     "silu",

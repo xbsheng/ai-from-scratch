@@ -6,8 +6,7 @@ import torch
 class QwenConfig(TypedDict):
     """Qwen3 模型配置。
 
-    字段名与官方 config.json 保持一致（hidden_size / num_hidden_layers 等）；
-    官方 config 中不存在的字段（qk_norm）作为本仓库开关保留原名。
+    字段名与官方 config.json 保持一致
     """
 
     vocab_size: int

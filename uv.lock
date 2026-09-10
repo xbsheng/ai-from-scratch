@@ -1184,6 +1184,7 @@ dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.2", source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }, marker = "python_full_version >= '3.12'" },
     { name = "tqdm" },
+    { name = "transformers" },
     { name = "xxhash" },
 ]
 
@@ -1191,6 +1192,7 @@ dependencies = [
 requires-dist = [
     { name = "numpy" },
     { name = "tqdm", specifier = ">=4.70.0" },
+    { name = "transformers", specifier = ">=5.16.1" },
     { name = "xxhash" },
 ]
 
