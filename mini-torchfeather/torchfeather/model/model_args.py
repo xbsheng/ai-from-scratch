@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 
 from loguru import logger
 from torch import nn
-from torchfeather.model.moe import MoEArgs
+
+from .moe import MoEArgs
 
 
 @dataclass
@@ -85,6 +86,8 @@ class DeepSeekV3ModelArgs:
         # forward = 2 * N params per token (1 multiply + 1 add per MAC = 2 FLOPs) -> 2N
         # backward is 2x forward (grad wrt input + grad wrt weight) -> 4N
         # Training = forward + backward = 2N + 4N -> 6N
+
+        # https://jax-ml.github.io/scaling-book/transformers/#global-flops-and-params-calculation
         n_flops_pre_token = 6 * (
             # embedding is a table lookup, does not perform MAC, and does not count as FLOPs.
             (n_active_params - n_embedding_params)
